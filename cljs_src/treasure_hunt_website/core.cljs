@@ -1,9 +1,8 @@
-(ns ^:figwheel-always treasure-hunt-website.core
-    (:require))
+(ns ^:figwheel-always treasure-hunt-website.core)
 
 (enable-console-print!)
 
-(println "Edits to this text should show up in your developer console.")
+(println "Edits to this text should show up in your developer console. Hello treasure hunt!")
 
 ;; define your app data so that it doesn't get over-written on reload
 

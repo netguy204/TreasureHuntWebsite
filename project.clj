@@ -12,7 +12,11 @@
                  [org.omcljs/om "0.8.8"]
 
                  [compojure "1.1.6"]
+                 [hiccup "1.0.5"]
                  [ring-server "0.3.1"]
+
+                 [org.xerial/sqlite-jdbc "3.7.2"]
+                 [org.clojure/java.jdbc "0.3.6"]
 
                  [lib-noir "0.7.6"]
                  
@@ -21,16 +25,21 @@
                  
                  ]
 
-  :plugins [[lein-cljsbuild "1.0.4"]
+  :plugins [[lein-ring "0.8.12"]
+            [lein-cljsbuild "1.0.4"]
             [lein-figwheel "0.2.5-SNAPSHOT"]]
 
   :source-paths ["src"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled"]
+
+  :ring {:handler treasure-hunt-website.handler/app
+         :init treasure-hunt-website.handler/init
+         :destroy treasure-hunt-website.handler/destroy}
   
   :cljsbuild {
     :builds [{:id "dev"
-              :source-paths ["src" "dev_src"]
+              :source-paths ["cljs_src" "dev_src"]
               :compiler {:output-to "resources/public/js/compiled/treasure_hunt_website.js"
                          :output-dir "resources/public/js/compiled/out"
                          :optimizations :none
@@ -52,13 +61,13 @@
              :css-dirs ["resources/public/css"] ;; watch and update CSS
 
              ;; Start an nREPL server into the running figwheel process
-             :nrepl-port 56789
+             ;; :nrepl-port 56789
 
              ;; Server Ring Handler (optional)
              ;; if you want to embed a ring handler into the figwheel http-kit
              ;; server, this is simple ring servers, if this
              ;; doesn't work for you just run your own server :)
-             ;; :ring-handler hello_world.server/handler
+             :ring-handler treasure-hunt-website.handler/app
 
              ;; To be able to open files in your editor from the heads up display
              ;; you will need to put a script on your path.

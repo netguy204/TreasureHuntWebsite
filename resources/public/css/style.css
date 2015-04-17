@@ -1,2 +1,61 @@
 /* some style */
 
+body {
+    background-color: #BBB;
+    color: #333;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+}
+
+h1 {
+    text-align: center;
+}
+
+label {
+    width: 150px;
+    float: left;
+}
+
+.error {
+    color: red;
+    border: 1px solid black;
+}
+
+#user-list {
+    border: 1px solid purple;
+    width: 20%;
+    float: left;
+    font-size: 2em;
+}
+
+#wishes {
+    border: 1px solid green;
+    margin-left: 20%;
+
+}
+
+.wish {
+    border: 1px solid blue;
+    padding: 1em;
+    width: 800px;
+    margin: auto;
+}
+
+.wish span {
+    font-size: 120%;
+    font-weight: bold;
+}
+
+.hidden {
+    position: absolute;
+    top: -1000em;
+    left: -1000em;
+}
+
+.selected-user {
+    background: #AFA;
+}
+
+.unselected-user {
+    background: #AAF;
+}
