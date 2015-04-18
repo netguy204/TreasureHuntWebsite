@@ -19,23 +19,6 @@
   (layout/common
    (let [teamname (session/get :teamname)]
      (if teamname
-       ;; [:div
-       ;;  [:div#team-list
-       ;;   [:ul]]
-       ;;  [:div#wishes]
-       ;;  [:div#editwish.hidden
-       ;;   [:span
-       ;;    (label "shortdesc" "Short Description:")
-       ;;    (text-field {:class "shortdesc"} "shortdesc")]
-       ;;   [:div
-       ;;    (label "longdesc" "Additional Details:")
-       ;;    (text-area {:class "longdesc"} "longdesc")]
-       ;;   [:div#edit-priority
-       ;;    (label "priority" "Priority:")
-       ;;    (text-field {:class "priority"} "priority")]
-       ;;   [:input {:id "edit-save-btn" :type "Button" :value "Save"}]
-       ;;   [:input {:id "edit-cancel-btn" :type "Button" :value "Cancel"}]]
-       ;; ]
        [:div
         [:h1 "Welcome, " teamname "!"]
         [:h2 "You have discovered the following clues:"]
