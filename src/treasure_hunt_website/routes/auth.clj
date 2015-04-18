@@ -7,13 +7,15 @@
             [noir.response :as resp]
             [noir.validation :as vali]
             [noir.util.crypt :as crypt]
+            [clojure.string :refer [lower-case]]
             [treasure-hunt-website.models.db :as db]))
 
 
 (defn valid? [id pass pass1]
   (vali/rule (vali/has-value? id)
              [:id "Team name is required"])
-  (vali/rule (not (db/get-team-by-login id))
+  
+  (vali/rule (not= (lower-case id) (lower-case (get (db/get-team-by-login id) :teamname "")))
              [:id (str "Team name \"" id  "\" has already been registered; please choose another")])
   (vali/rule (vali/min-length? pass 5)
              [:pass "Password must be at least 5 characters long"])
@@ -23,7 +25,6 @@
 
 (defn valid-login? [id pass]
   (let [team (db/get-team-by-login id)]
-    (println "Got team: " team)
     (vali/rule team
                [:id "Invalid team"])
     (when team
@@ -51,7 +52,10 @@
             [:br]
             (submit-button {:tabindex 4} "Create Account"))))
 
-;; (db/create-team {:teamname "Sweet" :password (crypt/encrypt "qwerty")})
+;; (db/create-team {:teamname "Demo" :password (crypt/encrypt "qwerty")})
+;; (do (db/update-clue 1 (crypt/encrypt "alpha"))
+;;     (db/update-clue 2 (crypt/encrypt "beta"))
+;;     (db/update-clue 3 (crypt/encrypt "gamma")))
 
 
 (defn handle-registration [id pass pass1]

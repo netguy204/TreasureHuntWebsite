@@ -70,7 +70,7 @@
         (vali/set-error :guess (str "You've already solved that one!")))
       (home))
     (do
-      (vali/set-error :guess (str guess "does not solve the clue"))
+      (vali/set-error :guess (str "\"" guess "\" does not solve the clue"))
       (home)))
   )
 
@@ -78,3 +78,5 @@
   (GET "/" [] (home))
   (POST "/guess" [guess] (check-guess guess))
   )
+
+

@@ -11,7 +11,7 @@
   (first (sql/query db ["SELECT * FROM teams WHERE id = ?" id])))
 
 (defn get-team-by-login [login]
-  (first (sql/query db ["SELECT * FROM teams WHERE teamname = ?" login])))
+  (first (sql/query db ["SELECT * FROM teams WHERE teamname = ? COLLATE NOCASE" login])))
 
 (defn create-team [team]
   (sql/insert! db :teams team)
@@ -21,7 +21,6 @@
 (defn convert-solved-to-boolean [m]
   (assoc m :solved (= 1 (:solved m))))
 
-;; TODO Reimplement this to actaully work
 (defn get-clues-for-team [teamid]
   (sql/query db ["SELECT c.clueid, c.cluetext, c.answercode, p.solved FROM clues AS c, progress AS p WHERE p.teamid = ? AND p.clueid = c.clueid" teamid] :row-fn convert-solved-to-boolean))
 
@@ -34,69 +33,22 @@
     (sql/update! db :progress {:solved 1} ["clueid = ?" solved-clueid])
     true
     (catch java.sql.SQLException ex
-      nil))
-)
-
-;; (defn update-progress [teamid solved-clueid]
-;;   (sql/with-connection db
-;;     (sql/update-values :progress
-;;      )
-;;     (sql/insert-record :progress {:teamid})))
+      nil)))
 
 
+;; (sql/delete! db :teams ["teamname = ?" "tcepsa"])
+;; (sql/query db ["Select * from teams"])
+;; ({:password "$2a$10$mF1K/E96oGh.AEPbK4BdKehH7vvgB0wcVJyjTcb5DVAIC5P5Bzi/y", :teamname "Sweet", :id 1} {:password "$2a$10$PAL9YixVNvPQ6SQdm6pMlOZjDyJE47lJhbBne3lX63t61pBWKNuke", :teamname "Tcepsa", :id 2} {:password "$2a$10$AQnCrPllwWPeoXPYMNBkyeJqQosG2d1/4U.eMFfJm2FLuslUmOVDS", :teamname "test", :id 3} {:password "$2a$10$xdutUEOL2SISWGFxpH0AwOCzsNRLCC742e1qoabxWBvN1Q0tE.WBu", :teamname "Flying Fortress", :id 4})
+
+;; These two in combination reset the team with id = 2
+;; (sql/delete! db :progress ["teamid = ?" 2])
+;; (sql/insert! db :progress {:teamid 2 :clueid 1 :solved 0})
+
+;; This gets all of the columns from all clues
+;; (sql/query db ["SELECT * FROM clues"])
 
 
 
-
-
-
-;; (defn enable-team [id]
-;;   (sql/with-connection db
-;;     (sql/update-values
-;;       :teams ["id = ?" id] {:active true})))
-
-
-;; (defn disable-team [id]
-;;   (sql/with-connection db
-;;     (sql/update-values
-;;       :teams ["id = ?" id] {:active false})))
-
-;; (defn get-active-team-names
-;;   "Returns a seq of the names of all active teams"
-;;   []
-;;   (sql/with-connection db
-;;     (sql/with-query-results
-;;       res ["SELECT name, id FROM teams WHERE active = true"]
-;;       ;; (doall (for [r res]
-;;       ;;          (:name r)))
-;;       (doall res))))
-
-;; (defn get-full-team-list
-;;   "Returns a seq of records of all teams"
-;;   []
-;;   (sql/with-connection db
-;;     (sql/with-query-results
-;;       res ["SELECT * FROM teams"]
-;;       (doall res))))
-
-;; (defn add-new-wish
-;;   "Add a new wish to the wishes table"
-;;   ([wisher-id shortdesc longdesc priority]
-;;    (add-new-wish {:wisher wisher-id :shortdesc shortdesc :longdesc longdesc :priority priority}))
-;;   ([wishmap]
-;;    (sql/with-connection db
-;;      (sql/insert-record :wishes wishmap))))
-
-;; (defn delete-wish
-;;   "Remove a wish from the wishes table"
-;;   [wisher-id wish-id]
-;;   (sql/with-connection db
-;;     (sql/delete-rows :wishes ["wisher=? AND id=?" wisher-id wish-id] )))
-
-;; (defn get-wishes-for-team
-;;   "Returns a seq of wish records for the team with the given id"
-;;   [team-id]
-;;   (sql/with-connection db
-;;     (sql/with-query-results
-;;       res ["SELECT * FROM wishes WHERE wisher = ?" team-id]
-;;       (doall res))))
+;; Use this if you need to tweak the answer to a clue (make sure to encrypt it first!  I've been using the auth namespace...)
+;; (defn update-clue [clueid new-answer]
+;;   (sql/update! db :clues {:answercode new-answer} ["clueid = ?" clueid]))
