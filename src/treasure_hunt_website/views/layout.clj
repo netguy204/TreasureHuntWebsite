@@ -12,7 +12,7 @@
      (when (session/get :teamname)
        (link-to "/logout" "logout"))
      content
-     [:script {:src "js/treasure-hunt-website-cljs.js"}]
+     ;; [:script {:src "js/treasure-hunt-website-cljs.js"}]
      ;; [:script "treasure-hunt-website.init();"]
      ]))
 
