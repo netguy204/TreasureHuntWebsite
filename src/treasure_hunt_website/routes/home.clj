@@ -5,7 +5,8 @@
             [noir.util.crypt :as crypt]
             [treasure-hunt-website.views.layout :as layout]
             [treasure-hunt-website.models.db :as db]
-            [hiccup.form :refer [form-to text-field text-area label submit-button]]))
+            [hiccup.form :refer [form-to text-field text-area label submit-button]]
+            [clojure.string :refer [lower-case trim]]))
 
 (defn clues [team-id]
   (doall (for [{:keys [clueid cluetext solved] :as clue} (db/get-clues-for-team team-id)]
@@ -36,7 +37,7 @@
        ;;   [:input {:id "edit-cancel-btn" :type "Button" :value "Cancel"}]]
        ;; ]
        [:div
-        [:h1 "Welcome: " teamname]
+        [:h1 "Welcome, " teamname "!"]
         [:h2 "You have discovered the following clues:"]
         (vec (conj
               (clues (session/get :teamid))
@@ -44,16 +45,16 @@
         (form-to [:post "/guess"]
                  
                  (vali/on-error :guess wrong-guess)
-                 (label "guess-label" "Enter tne solution to this clue:")
+                 (label "guess-label" "Enter the solution to this clue:")
                  (text-field {:tabindex 1} "guess")
                  [:br]
                  (submit-button {:tabindex 2} "Check!"))]
        [:div
-        [:h1 "Welcome to the game!  Please log in or register!"]]
+        [:h1 "Welcome to Spark Games!  Please log in or register!"]]
      ))))
 
 (defn check-guess-against-clue [guess clue]
-  (crypt/compare guess (:answercode clue)))
+  (crypt/compare (lower-case (trim guess)) (:answercode clue)))
 
 (defn correct? [guess]
   (let [clues (db/get-clues-for-team (session/get :teamid))]

@@ -6,7 +6,7 @@
 (defn base [& content]
   (html5
     [:head
-     [:title "The Game"]
+     [:title "Spark Games"]
      (include-css "/css/screen.css")]
     [:body
      (when (session/get :teamname)
