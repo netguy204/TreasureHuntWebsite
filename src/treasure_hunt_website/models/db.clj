@@ -36,9 +36,13 @@
       nil)))
 
 
+(defn team-has-solved-all-clues? [teamid]
+  (> (:num_solved_clues (first (sql/query db ["SELECT COUNT(*) AS num_solved_clues FROM progress WHERE teamid = ?" teamid])))
+     (:num_clues (first (sql/query db ["SELECT COUNT(*) AS num_clues FROM clues"])))
+     ))
+
 ;; (sql/delete! db :teams ["teamname = ?" "tcepsa"])
-;; (sql/query db ["Select * from teams"])
-;; ({:password "$2a$10$mF1K/E96oGh.AEPbK4BdKehH7vvgB0wcVJyjTcb5DVAIC5P5Bzi/y", :teamname "Sweet", :id 1} {:password "$2a$10$PAL9YixVNvPQ6SQdm6pMlOZjDyJE47lJhbBne3lX63t61pBWKNuke", :teamname "Tcepsa", :id 2} {:password "$2a$10$AQnCrPllwWPeoXPYMNBkyeJqQosG2d1/4U.eMFfJm2FLuslUmOVDS", :teamname "test", :id 3} {:password "$2a$10$xdutUEOL2SISWGFxpH0AwOCzsNRLCC742e1qoabxWBvN1Q0tE.WBu", :teamname "Flying Fortress", :id 4})
+;; (sql/query db ["Select id, teamname from teams"])
 
 ;; These two in combination reset the team with id = 2
 ;; (sql/delete! db :progress ["teamid = ?" 2])

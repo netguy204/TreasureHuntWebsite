@@ -25,13 +25,15 @@
         (vec (conj
               (clues (session/get :teamid))
               :ul))
-        (form-to [:post "/guess"]
-                 
-                 (vali/on-error :guess wrong-guess)
-                 (label "guess-label" "Enter the solution to this clue:")
-                 (text-field {:tabindex 1} "guess")
-                 [:br]
-                 (submit-button {:tabindex 2} "Check!"))]
+        (if (db/team-has-solved-all-clues? (session/get :teamid))
+          [:div.victory "Congratulations, you have completed the Spark Games challenge!"]
+          (form-to [:post "/guess"]
+                   
+                   (vali/on-error :guess wrong-guess)
+                   (label "guess-label" "Enter the solution to this clue:")
+                   (text-field {:tabindex 1} "guess")
+                   [:br]
+                   (submit-button {:tabindex 2} "Check!")))]
        [:div
         [:h1 "Welcome to Spark Games!  Please log in or register!"]]
      ))))
