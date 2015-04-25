@@ -35,9 +35,8 @@
     (catch java.sql.SQLException ex
       nil)))
 
-
 (defn team-has-solved-all-clues? [teamid]
-  (> (:num_solved_clues (first (sql/query db ["SELECT COUNT(*) AS num_solved_clues FROM progress WHERE teamid = ?" teamid])))
+  (= (:num_solved_clues (first (sql/query db ["SELECT COUNT(*) AS num_solved_clues FROM progress WHERE teamid = ? AND solved = 1" teamid])))
      (:num_clues (first (sql/query db ["SELECT COUNT(*) AS num_clues FROM clues"])))
      ))
 
