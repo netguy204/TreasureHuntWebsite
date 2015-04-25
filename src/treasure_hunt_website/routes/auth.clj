@@ -14,7 +14,7 @@
 (defn valid? [id pass pass1]
   (vali/rule (vali/has-value? id)
              [:id "Team name is required"])
-  
+
   (vali/rule (not= (lower-case id) (lower-case (get (db/get-team-by-login id) :teamname "")))
              [:id (str "Team name \"" id  "\" has already been registered; please choose another")])
   (vali/rule (vali/min-length? pass 5)
@@ -111,4 +111,3 @@
         (handle-login id pass))
   (GET "/logout" []
        (handle-logout)))
-
