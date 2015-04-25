@@ -34,3 +34,7 @@
 (defn stop-server []
   (.stop @server)
   (reset! server nil))
+
+(defn -main [& args]
+  (let [port (if args (first args) "80")]
+    (start-server port)))
