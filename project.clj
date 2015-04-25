@@ -1,6 +1,6 @@
 (defproject treasure-hunt-website "0.1.0-SNAPSHOT"
-  :description "FIXME: write this!"
-  :url "http://example.com/FIXME"
+  :description "A website in Clojure for hosting treasure hunts and scavenger hunts!"
+  :url "https://github.com/Tcepsa/TreasureHuntWebsite"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
