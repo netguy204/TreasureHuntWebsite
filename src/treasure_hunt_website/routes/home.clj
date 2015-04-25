@@ -58,7 +58,7 @@
   (if-let [{:keys [clueid]} (correct? guess)]
     (do
       (println "Solved clue " clueid)
-      (if (db/update-progress (session/get :teamid) clueid)
+      (if (db/mark-clue-solved-and-unlock-next-clue (session/get :teamid) clueid)
         (vali/set-error :guess (str "Correct!"))
         (vali/set-error :guess (str "You've already solved that one!")))
       (home))
