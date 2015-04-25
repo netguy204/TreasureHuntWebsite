@@ -19,10 +19,10 @@
                  [org.clojure/java.jdbc "0.3.6"]
 
                  [lib-noir "0.7.6"]
-                 
+
                  [domina "1.0.0"]
                  [cljs-ajax "0.2.0"]
-                 
+
                  ]
 
   :plugins [[lein-ring "0.8.12"]
@@ -36,7 +36,7 @@
   :ring {:handler treasure-hunt-website.handler/app
          :init treasure-hunt-website.handler/init
          :destroy treasure-hunt-website.handler/destroy}
-  
+
   :cljsbuild {
     :builds [{:id "dev"
               :source-paths ["cljs_src" "dev_src"]
@@ -51,12 +51,12 @@
              {:id "min"
               :source-paths ["src"]
               :compiler {:output-to "resources/public/js/compiled/treasure_hunt_website.js"
-                         :main treasure-hunt-website.core                         
+                         :main treasure-hunt-website.core
                          :optimizations :advanced
                          :pretty-print false}}]}
 
   :figwheel {
-             :http-server-root "public" ;; default and assumes "resources" 
+             :http-server-root "public" ;; default and assumes "resources"
              :server-port 3449 ;; default
              :css-dirs ["resources/public/css"] ;; watch and update CSS
 
@@ -82,5 +82,5 @@
              ;; :repl false
 
              ;; to configure a different figwheel logfile path
-             ;; :server-logfile "tmp/logs/figwheel-logfile.log" 
+             ;; :server-logfile "tmp/logs/figwheel-logfile.log"
              })
