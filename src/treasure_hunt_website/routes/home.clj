@@ -33,7 +33,8 @@
                    (label "guess-label" "Enter the solution to this clue:")
                    (text-field {:tabindex 1} "guess")
                    [:br]
-                   (submit-button {:tabindex 2} "Check!")))]
+                   (submit-button {:tabindex 2} "Check!")))
+        [:h2 "You have currently earned: " (db/calculate-score-for-team (session/get :teamid)) " points!"]]
 
        ;; no team name
        (list
