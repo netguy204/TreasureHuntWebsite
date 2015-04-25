@@ -40,6 +40,12 @@
      (:num_clues (first (sql/query db ["SELECT COUNT(*) AS num_clues FROM clues"])))
      ))
 
+(defn- create-clues []
+  (add-clue "First clue" (noir.util.crypt/encrypt "alpha"))
+  (add-clue "Second clue" (noir.util.crypt/encrypt "beta"))
+  (add-clue "Third clue" (noir.util.crypt/encrypt "gamma"))
+  )
+
 ;; (sql/delete! db :teams ["teamname = ?" "tcepsa"])
 ;; (sql/query db ["Select id, teamname from teams"])
 
