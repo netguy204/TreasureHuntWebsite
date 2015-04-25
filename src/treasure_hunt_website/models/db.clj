@@ -40,6 +40,7 @@
      (:num_clues (first (sql/query db ["SELECT COUNT(*) AS num_clues FROM clues"])))
      ))
 
+;; TODO Make this take hints into account
 (defn calculate-score-for-team [teamid]
   (* 3 (:num_solved_clues (first (sql/query db ["SELECT COUNT(*) AS num_solved_clues FROM progress WHERE teamid = ? AND solved = 1" teamid])))))
 
