@@ -28,15 +28,22 @@
         (if (db/team-has-solved-all-clues? (session/get :teamid))
           [:div.victory "Congratulations, you have completed the Spark Games challenge!"]
           (form-to [:post "/guess"]
-                   
+
                    (vali/on-error :guess wrong-guess)
                    (label "guess-label" "Enter the solution to this clue:")
                    (text-field {:tabindex 1} "guess")
                    [:br]
                    (submit-button {:tabindex 2} "Check!")))]
-       [:div
-        [:h1 "Welcome to Spark Games!  Please log in or register!"]]
-     ))))
+
+       ;; no team name
+       (list
+        [:div.row
+         [:div.large-12.columns
+          [:h2 "Welcome to Spark Games!"]]]
+
+        [:div.row
+         [:div.large-12.columns
+          "If you have a team then please log in to continue your quest. If this is your first visit then select register to begin."]])))))
 
 (defn check-guess-against-clue [guess clue]
   (crypt/compare (lower-case (trim guess)) (:answercode clue)))
@@ -63,5 +70,3 @@
   (GET "/" [] (home))
   (POST "/guess" [guess] (check-guess guess))
   )
-
-
