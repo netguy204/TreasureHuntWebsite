@@ -22,6 +22,8 @@
      :clues
      [:clueid "INTEGER PRIMARY KEY AUTOINCREMENT"]
      [:cluetext "TEXT"]
+     [:locationhint "TEXT"]
+     [:cluehint "TEXT"]
      [:answercode "TEXT"])))
 
 (defn create-progress-table
@@ -32,6 +34,8 @@
      :progress
      [:teamid "INTEGER"]
      [:clueid "INTEGER"]
+     [:usedlocationhint "INTEGER"]
+     [:usedcluehint "INTEGER"]
      [:solved "INTEGER"]
      [:UNIQUE "(teamid, clueid)"])))
 
@@ -47,10 +51,12 @@
      [:nextclueid "INTEGER"])))
 
 (defn reset-database
-  "Drops and re-adds all tables.  Probably a bad idea to use this in production... DOES NOT DROP CLUES currently"
+  "Drops and re-adds all tables.  Probably a bad idea to use this in production..."
   []
   (sql/db-do-commands db
                       (sql/drop-table-ddl :progress)
-                      (sql/drop-table-ddl :teams))
+                      (sql/drop-table-ddl :teams)
+                      (sql/drop-table-ddl :clues))
+  (create-clues-table)
   (create-teams-table)
   (create-progress-table))
