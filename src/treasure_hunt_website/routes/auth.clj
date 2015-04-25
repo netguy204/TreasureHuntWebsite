@@ -7,12 +7,12 @@
             [noir.response :as resp]
             [noir.validation :as vali]
             [noir.util.crypt :as crypt]
-            [clojure.string :refer [lower-case]]
+            [clojure.string :refer [lower-case trim]]
             [treasure-hunt-website.models.db :as db]))
 
 
 (defn valid? [id pass pass1]
-  (vali/rule (vali/has-value? id)
+  (vali/rule (vali/has-value? (trim id))
              [:id "Team name is required"])
 
   (vali/rule (not= (lower-case id) (lower-case (get (db/get-team-by-login id) :teamname "")))
