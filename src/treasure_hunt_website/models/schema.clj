@@ -27,6 +27,7 @@
      [:cluehint "TEXT"]
      [:haslimitedattempts "INTEGER"]
      [:numattemptsallowed "INTEGER"]
+     [:flairchallenge "INTEGER"]
      [:answercode "TEXT"])))
 
 (defn create-progress-table
