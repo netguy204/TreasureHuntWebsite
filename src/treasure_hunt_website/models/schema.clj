@@ -10,7 +10,8 @@
      :teams
      [:id "INTEGER PRIMARY KEY AUTOINCREMENT"]
      [:teamname "TEXT UNIQUE"]
-     [:password "TEXT"])
+     [:password "TEXT"]
+     [:pocemail "TEXT"])
 
     "CREATE INDEX teams_index ON teams (teamname)"))
 

@@ -11,7 +11,7 @@
             [treasure-hunt-website.models.db :as db]))
 
 
-(defn valid? [id pass pass1]
+(defn valid? [id pass pass1 pocemail]
   (vali/rule (vali/has-value? (trim id))
              [:id "Team name is required"])
 
@@ -21,6 +21,8 @@
              [:pass "Password must be at least 5 characters long"])
   (vali/rule (= pass pass1)
              [:pass "The password fields do not match"])
+  (vali/rule (vali/has-value? (trim pocemail))
+             [:pocemail "An email address at which we can contact your team is required"])
   (not (vali/errors? :id :pass :pass1)))
 
 (defn valid-login? [id pass]
@@ -35,22 +37,34 @@
 (defn error-item [[error]]
   [:div.error error])
 
-(defn registration-page [& [id]]
+(defn registration-page [& [id pocemail]]
   (layout/base
    (form-to [:post "/register"]
             (vali/on-error :id error-item)
             (label "team-id" "Team name")
             (text-field {:tabindex 1}  "id" id)
             [:br]
+            (vali/on-error :pocemail error-item)
+            (label "pocemail" "Team Point-of-Contact e-mail address")
+            (text-field {:tabindex 2} "pocemail" pocemail)
+            [:br]
             (vali/on-error :pass error-item)
             (label "pass" "Password")
-            (password-field {:tabindex 2} "pass")
+            (password-field {:tabindex 3} "pass")
             [:br]
             (vali/on-error :pass1 error-item)
             (label "pass1" "Confirm password")
-            (password-field {:tabindex 3} "pass1")
+            (password-field {:tabindex 4} "pass1")
             [:br]
-            (submit-button {:tabindex 4} "Create Account"))))
+            ;; (vali/on-error :pocname error-item)
+            ;; (label "pocname" "Name (optional)")
+            ;; (text-field {:tabindex 5} "pocname" pocname)
+            ;; [:br]
+            ;; (vali/on-error :pocname error-item)
+            ;; (label "pocname" "Name (optional)")
+            ;; (text-field {:tabindex 5} "pocname" pocname)
+            ;; [:br]
+            (submit-button {:tabindex 5} "Create Account"))))
 
 ;; (db/create-team {:teamname "Demo" :password (crypt/encrypt "qwerty")})
 ;; (do (db/update-clue 1 (crypt/encrypt "alpha"))
@@ -58,19 +72,19 @@
 ;;     (db/update-clue 3 (crypt/encrypt "gamma")))
 
 
-(defn handle-registration [id pass pass1]
-  (if (valid? id pass pass1)
+(defn handle-registration [id pass pass1 pocemail]
+  (if (valid? id pass pass1 pocemail)
     (do
       (try
-        (db/create-team {:teamname id :password (crypt/encrypt pass)})
+        (db/create-team {:teamname id :password (crypt/encrypt pass) :pocemail pocemail})
         (let [{:keys [teamname id]} (db/get-team-by-login id) ]
           (session/put! :teamname teamname)
           (session/put! :teamid id))
         (resp/redirect "/")
         (catch java.sql.SQLException ex
-          (vali/set-error :id ("Something went wrong: " (.getMessage ex)))
+          (vali/set-error :id (str "Something went wrong; please send the following text to +SparkGameControl (just the first bit, not the whole stacktrace!): " (.getMessage ex)))
           (registration-page id))))
-    (registration-page id)))
+    (registration-page id pocemail)))
 
 (defn login-page [& [id]]
   (layout/common
@@ -103,8 +117,8 @@
 (defroutes auth-routes
   (GET "/register" []
        (registration-page))
-  (POST "/register" [id pass pass1]
-        (handle-registration id pass pass1))
+  (POST "/register" [id pass pass1 pocemail]
+        (handle-registration id pass pass1 pocemail))
   (GET "/login" []
        (login-page))
   (POST "/login" [id pass]
