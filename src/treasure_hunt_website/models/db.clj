@@ -61,6 +61,11 @@
     num_solved_clues
     0))
 
+(defn- get-number-of-clues-failed-by-team [teamid]
+  (if-let [num_failed_clues (:num_failed_clues (first (sql/query db ["SELECT COUNT(*) AS num_failed_clues FROM progress AS p, clues AS c WHERE p.clueid = c.clueid AND p.teamid = ? AND p.solved = 0 AND p.numattemptsmade >= c.numattemptsallowed" teamid])))]
+    num_failed_clues
+    0))
+
 (defn- get-number-of-hints-used-by-team [teamid]
   (if-let [num_used_hints (:num_used_hints (first (sql/query db ["SELECT SUM(usedlocationhint) + SUM(usedcluehint) AS num_used_hints FROM progress WHERE teamid = ?" teamid])))]
     num_used_hints
@@ -70,8 +75,9 @@
   (if-let [{:keys [num_clues]} (first (sql/query db ["SELECT COUNT(*) AS num_clues FROM clues"]))]
     num_clues))
 
-(defn team-has-solved-all-clues? [teamid]
-  (= (get-number-of-clues-solved-by-team teamid)
+(defn team-has-solved-or-failed-all-clues? [teamid]
+  (= (+ (get-number-of-clues-solved-by-team teamid)
+        (get-number-of-clues-failed-by-team teamid))
      (get-total-number-of-clues)
      ))
 

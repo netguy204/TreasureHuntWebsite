@@ -28,7 +28,7 @@
         (vec (conj
               (clues (session/get :teamid))
               :ul))
-        (if (db/team-has-solved-all-clues? (session/get :teamid))
+        (if (db/team-has-solved-or-failed-all-clues? (session/get :teamid))
           [:div.victory "Congratulations, you have completed the Spark Games challenge!"]
           (form-to [:post "/guess"]
 
