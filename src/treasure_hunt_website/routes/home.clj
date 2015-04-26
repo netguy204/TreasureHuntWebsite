@@ -9,11 +9,14 @@
             [clojure.string :refer [lower-case trim]]))
 
 (defn clues [team-id]
-  (doall (for [{:keys [clueid cluetext haslimitedattempts numattemptsallowed numattemptsmade solved] :as clue} (db/get-clues-for-team team-id)]
-           [:li {:clueid clueid} (str cluetext (if solved
-                                                 (str " SOLVED!")
-                                                 (if haslimitedattempts
-                                                   (str " (" numattemptsmade "/" numattemptsallowed " attempts used)"))))])))
+  (doall (for [{:keys [clueid cluetext haslimitedattempts numattemptsallowed numattemptsmade flairchallenge solved] :as clue} (db/get-clues-for-team team-id)]
+           [:li {:clueid clueid}
+            (when flairchallenge
+              [:img {:src "sun.jpg"}])
+            (str cluetext (if solved
+                            (str " SOLVED!")
+                            (if haslimitedattempts
+                              (str " (" numattemptsmade "/" numattemptsallowed " attempts used)"))))])))
 
 (defn wrong-guess [[message]]
   [:div.wrong-guess message])
@@ -27,7 +30,7 @@
         [:h2 "You have discovered the following clues:"]
         (vec (conj
               (clues (session/get :teamid))
-              :ul))
+              :ol))
         (if (db/team-has-solved-or-failed-all-clues? (session/get :teamid))
           [:div.victory "Congratulations, you have completed the Spark Games challenge!"]
           (form-to [:post "/guess"]
