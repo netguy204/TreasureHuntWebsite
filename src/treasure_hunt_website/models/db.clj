@@ -16,26 +16,41 @@
 (defn create-team [team]
   (sql/insert! db :teams team)
   (let [{:keys [id] :as team} (get-team-by-login (:teamname team))]
-    (sql/insert! db :progress {:teamid id :clueid 1 :usedlocationhint 0 :usedcluehint 0 :solved 0})))
+    (sql/insert! db :progress {:teamid id :clueid 1 :usedlocationhint 0 :usedcluehint 0 :numattemptsmade 0 :solved 0})))
 
 (defn convert-solved-to-boolean [m]
   (assoc m :solved (= 1 (:solved m))))
 
-(defn convert-progress-fields-to-boolean [{:keys [usedlocationhint usedcluehint solved] :as m}]
+(defn convert-fields-to-boolean [{:keys [haslimitedattempts usedlocationhint usedcluehint solved] :as m}]
   (assoc m
+         :haslimitedattempts (= 1 haslimitedattempts)
          :usedlocationhint (= 1 usedlocationhint)
          :usedcluehint (= 1 usedcluehint)
          :solved (= 1 solved)))
 
 (defn get-clues-for-team [teamid]
-  (sql/query db ["SELECT c.clueid, c.cluetext, c.locationhint, c.cluehint, c.answercode, p.usedlocationhint, p.usedcluehint, p.solved FROM clues AS c, progress AS p WHERE p.teamid = ? AND p.clueid = c.clueid" teamid] :row-fn convert-progress-fields-to-boolean))
+  (sql/query db ["SELECT c.clueid, c.cluetext, c.locationhint, c.cluehint, c.haslimitedattempts, c.numattemptsallowed, c.answercode, p.usedlocationhint, p.usedcluehint, p.numattemptsmade, p.solved FROM clues AS c, progress AS p WHERE p.teamid = ? AND p.clueid = c.clueid" teamid] :row-fn convert-fields-to-boolean))
 
-(defn add-clue [cluetext locationhint cluehint answercode]
-  (sql/insert! db :clues {:cluetext cluetext :locationhint locationhint :cluehint cluehint :answercode answercode}))
+(defn update-attempts-made
+  [clueid teamid newattemptsmade]
+  (sql/update! db :progress {:numattemptsmade newattemptsmade} ["clueid = ? AND teamid = ?" clueid teamid]))
+
+(defn get-current-clue-for-team-and-mark-an-attempt [teamid]
+  (let [{:keys [clueid numattemptsmade] :as clue} (last (sql/query db ["SELECT c.clueid, c.cluetext, c.locationhint, c.cluehint, c.haslimitedattempts, c.numattemptsallowed, c.answercode, p.usedlocationhint, p.usedcluehint, p.numattemptsmade, p.solved FROM clues AS c, progress AS p WHERE p.teamid = ? AND p.clueid = c.clueid ORDER BY c.clueid ASC" teamid] :row-fn convert-fields-to-boolean))
+        newattemptsmade (inc numattemptsmade)]
+    (update-attempts-made clueid teamid newattemptsmade)
+    (assoc clue :numattemptsmade newattemptsmade)))
+
+(defn add-clue [cluetext locationhint cluehint haslimitedattempts numattemptsallowed answercode]
+  (sql/insert! db :clues {:cluetext cluetext :locationhint locationhint :cluehint cluehint :haslimitedattempts haslimitedattempts :numattemptsallowed numattemptsallowed :answercode answercode}))
+
+(defn unlock-next-clue [teamid previous-clueid]
+  (sql/insert! db :progress {:clueid (inc previous-clueid) :teamid teamid :usedlocationhint 0 :usedcluehint 0 :numattemptsmade 0 :solved 0})
+  )
 
 (defn mark-clue-solved-and-unlock-next-clue [teamid solved-clueid]
   (try
-    (sql/insert! db :progress {:clueid (inc solved-clueid) :teamid teamid :usedlocationhint 0 :usedcluehint 0 :solved 0})
+    (unlock-next-clue teamid solved-clueid)
     (sql/update! db :progress {:solved 1} ["clueid = ?" solved-clueid])
     true
     (catch java.sql.SQLException ex
@@ -75,9 +90,9 @@
    (* -1 (get-number-of-hints-used-by-team teamid))))
 
 (defn- create-clues []
-  (add-clue "First clue" "The first clue is hidden in location A" "The solution is the first letter of the Greek alphabet" (noir.util.crypt/encrypt "alpha"))
-  (add-clue "Second clue" "The second clue is hidden in location A" "The solution is the second letter of the Greek alphabet" (noir.util.crypt/encrypt "beta"))
-  (add-clue "Third clue" "The third clue is hidden in location A" "The solution is the third letter of the Greek alphabet" (noir.util.crypt/encrypt "gamma"))
+  (add-clue "First clue" "The first clue is hidden in location A" "The solution is the first letter of the Greek alphabet" 0 0 (noir.util.crypt/encrypt "alpha"))
+  (add-clue "Second clue" "The second clue is hidden in location B" "The solution is the second letter of the Greek alphabet" 1 1 (noir.util.crypt/encrypt "beta"))
+  (add-clue "Third clue" "The third clue is hidden in location C" "The solution is the third letter of the Greek alphabet" 0 0 (noir.util.crypt/encrypt "gamma"))
   )
 
 ;; (sql/delete! db :teams ["teamname = ?" "tcepsa"])

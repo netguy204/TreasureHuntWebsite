@@ -25,6 +25,8 @@
      [:cluetext "TEXT"]
      [:locationhint "TEXT"]
      [:cluehint "TEXT"]
+     [:haslimitedattempts "INTEGER"]
+     [:numattemptsallowed "INTEGER"]
      [:answercode "TEXT"])))
 
 (defn create-progress-table
@@ -37,6 +39,7 @@
      [:clueid "INTEGER"]
      [:usedlocationhint "INTEGER"]
      [:usedcluehint "INTEGER"]
+     [:numattemptsmade "INTEGER"]
      [:solved "INTEGER"]
      [:UNIQUE "(teamid, clueid)"])))
 

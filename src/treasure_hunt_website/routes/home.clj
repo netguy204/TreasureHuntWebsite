@@ -9,8 +9,11 @@
             [clojure.string :refer [lower-case trim]]))
 
 (defn clues [team-id]
-  (doall (for [{:keys [clueid cluetext solved] :as clue} (db/get-clues-for-team team-id)]
-           [:li {:clueid clueid} (str cluetext (when solved (str " SOLVED!")))])))
+  (doall (for [{:keys [clueid cluetext haslimitedattempts numattemptsallowed numattemptsmade solved] :as clue} (db/get-clues-for-team team-id)]
+           [:li {:clueid clueid} (str cluetext (if solved
+                                                 (str " SOLVED!")
+                                                 (if haslimitedattempts
+                                                   (str " (" numattemptsmade "/" numattemptsallowed " attempts used)"))))])))
 
 (defn wrong-guess [[message]]
   [:div.wrong-guess message])
@@ -46,26 +49,28 @@
          [:div.large-12.columns
           "If you have a team then please log in to continue your quest. If this is your first visit then select register to begin."]])))))
 
-(defn check-guess-against-clue [guess clue]
-  (crypt/compare (lower-case (trim guess)) (:answercode clue)))
+(defn check-guess-against-clue [guess {:keys [answercode]}]
+  (crypt/compare (lower-case (trim guess)) answercode))
 
+;; TODO Fix the architecture (correct? probably shouldn't be handling ALL of this!)
 (defn correct? [guess]
-  (let [clues (db/get-clues-for-team (session/get :teamid))]
-    (first (filter #(check-guess-against-clue guess %) clues))
+  (let [{:keys [clueid haslimitedattempts numattemptsallowed numattemptsmade] :as clue} (db/get-current-clue-for-team-and-mark-an-attempt (session/get :teamid))]
+    (if (check-guess-against-clue guess clue)
+      (do
+        (db/mark-clue-solved-and-unlock-next-clue (session/get :teamid) clueid)
+        (assoc clue :solved true))
+      (when (and haslimitedattempts
+               (>= numattemptsmade numattemptsallowed))
+        (db/unlock-next-clue (session/get :teamid) clueid)
+        (assoc clue :solved nil)))
   ))
 
 (defn check-guess [guess]
-  (if-let [{:keys [clueid]} (correct? guess)]
-    (do
-      (println "Solved clue " clueid)
-      (if (db/mark-clue-solved-and-unlock-next-clue (session/get :teamid) clueid)
-        (vali/set-error :guess (str "Correct!"))
-        (vali/set-error :guess (str "You've already solved that one!")))
-      (home))
-    (do
-      (vali/set-error :guess (str "\"" guess "\" does not solve the clue"))
-      (home)))
-  )
+  (let [{:keys [solved] :as clue} (correct? guess)]
+    (if solved
+      (vali/set-error :guess (str "Correct!"))
+      (vali/set-error :guess (str "\"" guess "\" does not solve the clue")))
+    (home)))
 
 (defroutes home-routes
   (GET "/" [] (home))
