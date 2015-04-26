@@ -15,6 +15,18 @@
 
     "CREATE INDEX teams_index ON teams (teamname)"))
 
+(defn create-team-members-table
+  "Creates a table to hold team members"
+  []
+  (sql/db-do-commands db
+                      (sql/create-table-ddl
+                       :team_members
+                       [:id "INTEGER PRIMARY KEY AUTOINCREMENT"]
+                       [:teammembername "TEXT"]
+                       [:teammemberemail "TEXT"]
+                       [:teammemberextension "TEXT"]
+                       [:teamid "INTEGER"])))
+
 (defn create-clues-table
   "Creates a table to hold clues"
   []
@@ -61,7 +73,9 @@
   (sql/db-do-commands db
                       (sql/drop-table-ddl :progress)
                       (sql/drop-table-ddl :teams)
+                      (sql/drop-table-ddl :team_members)
                       (sql/drop-table-ddl :clues))
   (create-clues-table)
   (create-teams-table)
+  (create-team-members-table)
   (create-progress-table))

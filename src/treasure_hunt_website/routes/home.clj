@@ -1,11 +1,13 @@
 (ns treasure-hunt-website.routes.home
   (:require [compojure.core :refer :all]
             [noir.session :as session]
+            [noir.response :as resp]
             [noir.validation :as vali]
             [noir.util.crypt :as crypt]
             [treasure-hunt-website.views.layout :as layout]
             [treasure-hunt-website.models.db :as db]
             [hiccup.form :refer [form-to text-field text-area label submit-button]]
+            [hiccup.element :refer [link-to]]
             [clojure.string :refer [lower-case trim]]))
 
 (defn clues [team-id]
@@ -40,7 +42,8 @@
                    (text-field {:tabindex 1} "guess")
                    [:br]
                    (submit-button {:tabindex 2} "Check!")))
-        [:h2 "You have currently earned: " (db/calculate-score-for-team (session/get :teamid)) " points!"]]
+        [:h2 "You have currently earned: " (db/calculate-score-for-team (session/get :teamid)) " points!"]
+        [:div.large-2.columns (link-to {:class "button"} "/editteam" "Edit Team")]]
 
        ;; no team name
        (list
@@ -75,7 +78,47 @@
       (vali/set-error :guess (str "\"" guess "\" does not solve the clue")))
     (home)))
 
+(defn teammembers [team-id]
+  (doall (for [{:keys [teammembername]} (db/get-team-members-for-team team-id)]
+           [:li teammembername])))
+
+(defn teammember-error [[error]]
+  [:div.error error])
+
+(defn teampage [& [teammembername]]
+  (if-let [teamname (session/get :teamname)]
+    (layout/common
+     [:div
+      [:h1 "Members of " teamname ":"]
+      [:ul
+       (teammembers (session/get :teamid))]
+      (form-to [:post "/addmember"]
+               (vali/on-error :teammembername teammember-error)
+               (label "teammembername-label" "Enter team member name")
+               (text-field {:tabindex 1} "teammembername" teammembername)
+               [:br]
+               (submit-button {:tabindex 2} "Add new member!"))
+      [:div.large-2.columns (link-to {:class "button"} "/" "Back to the clues!")]])
+    (resp/redirect "/")))
+
+(defn valid-teammember? [teammembername]
+  (vali/rule (vali/has-value? (trim teammembername))
+             [:teammembername "Can't add a blank teammember"])
+  (vali/rule (nil? (db/get-team-member teammembername (session/get :teamid)))
+             [:teammembername (str teammembername " has already been added")])
+  (not (vali/errors? :teammembername)))
+
+(defn add-team-member [teammembername]
+  (if (valid-teammember? teammembername)
+    (do
+      (db/add-member-to-team teammembername (session/get :teamid))
+      (resp/redirect "/editteam"))
+    (teampage [teammembername])
+    ))
+
 (defroutes home-routes
   (GET "/" [] (home))
   (POST "/guess" [guess] (check-guess guess))
+  (GET "/editteam" [] (teampage))
+  (POST "/addmember" [teammembername] (add-team-member teammembername))
   )

@@ -21,7 +21,7 @@
         (when (session/get :teamname)
           [:div.row
            [:div.large-10.columns]
-           [:div.large-2.columns (link-to {:class "button"} "/logout" "logout")]])]]
+           [:div.large-2.columns (link-to {:class "button"} "/logout" "Logout")]])]]
 
       [:script {:src (str fnd "/js/vendor/jquery.js")}]
       [:script {:src (str fnd "/js/foundation.min.js")}]
