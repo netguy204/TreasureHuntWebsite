@@ -26,6 +26,10 @@
 (defn teamid []
   (session/get :teamid))
 
+(defn teammembers [team-id]
+  (for [{:keys [teammembername]} (db/get-team-members-for-team team-id)]
+    teammembername))
+
 (def logged-in? teamname)
 
 (defn auth-block []
@@ -46,6 +50,9 @@
     (not active) (if default {:class "active"} {})
     (= active current) {:class "active"}
     true {}))
+
+(defn teammember-error [[error]]
+  [:div.error error])
 
 (defn tabbed-view [{:keys [teammembername active-tab]} content]
   (list
@@ -163,20 +170,6 @@
       (vali/set-error :guess (str "\"" guess "\" does not solve the clue")))
     (home)))
 
-(defn teammembers [team-id]
-  (for [{:keys [teammembername]} (db/get-team-members-for-team team-id)]
-    teammembername))
-
-(defn teammember-error [[error]]
-  [:div.error error])
-
-(defn teampage [& [teammembername]]
-  (if-let [teamname (session/get :teamname)]
-    (layout/common
-     [:div
-      [:div.large-2.columns (link-to {:class "button"} "/" "Back to the clues!")]])
-    (resp/redirect "/")))
-
 (defn valid-teammember? [teammembername]
   (vali/rule (vali/has-value? (trim teammembername))
              [:teammembername "Can't add a blank teammember"])
@@ -195,6 +188,4 @@
 (defroutes home-routes
   (GET "/" [] (home))
   (POST "/guess" [guess] (check-guess guess))
-  (GET "/editteam" [] (teampage))
-  (POST "/addmember" [teammembername] (add-team-member teammembername))
-  )
+  (POST "/addmember" [teammembername] (add-team-member teammembername)))

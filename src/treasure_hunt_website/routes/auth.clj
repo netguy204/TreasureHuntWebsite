@@ -99,15 +99,21 @@
 (defn login-page [& [id]]
   (layout/common
    (form-to [:post "/login"]
-            (vali/on-error :id error-item)
-            (label "team-id" "Team name")
-            (text-field {:tabindex 1} "id" id)
-            [:br]
-            (vali/on-error :pass error-item)
-            (label "pass" "Password")
-            (password-field {:tabindex 2} "pass")
-            [:br]
-            (submit-button {:tabindex 3} "Login"))))
+            [:div.row
+             [:div.large-12.columns
+              (vali/on-error :id error-item)
+              (label "team-id" "Team name")
+              (text-field {:tabindex 1} "id" id)]]
+
+            [:div.row
+             [:div.large-12.columns
+              (vali/on-error :pass error-item)
+              (label "pass" "Password")
+              (password-field {:tabindex 2} "pass")]]
+
+            [:div.row
+             [:div.large-12.columns
+              (submit-button {:tabindex 3 :class "button expand"} "Login")]])))
 
 (defn handle-login [id pass]
   (if (valid-login? id pass)
