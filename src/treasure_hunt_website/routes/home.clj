@@ -186,36 +186,44 @@
                 [:div.row
                  [:div.large-12.columns [:h3 "Location Hint"]]]
 
-                (if usedlocationhint
-                  [:div.row
-                   [:div.large-12.columns locationhint]]
+                (cond
 
-                  (list
-                   [:div.row
-                    [:div.large-12.columns "Spend a point to unlock a location hint?"]]
-                   [:div.row
-                    [:div.large-12.columns
-                     (form-to [:put "/requesthint/location"]
-                              (hidden-field "clueid" clueid)
-                              (submit-button {:tabindex 1 :class "button expand"} "Reveal Location Hint"))]])))]
+                  usedlocationhint [:div.row
+                                    [:div.large-12.columns locationhint]]
+
+                  (empty? cluehint) [:div.row
+                                     [:div.large-12.columns "You're not getting any help on this one."]]
+
+                  true (list
+                        [:div.row
+                         [:div.large-12.columns "Spend a point to unlock a location hint?"]]
+                        [:div.row
+                         [:div.large-12.columns
+                          (form-to [:put "/requesthint/location"]
+                                   (hidden-field "clueid" clueid)
+                                   (submit-button {:tabindex 1 :class "button expand"} "Reveal Location Hint"))]])))]
 
               [:div.large-6.columns.panel
                (list
                 [:div.row
                  [:div.large-12.columns [:h3 "Clue Hint"]]]
 
-                (if usedcluehint
-                  [:div.row
-                   [:div.large-12.columns cluehint]]
+                (cond
 
-                  (list
-                   [:div.row
-                    [:div.large-12.columns "Spend a point to unlock a better clue?"]]
-                   [:div.row
-                    [:div.large-12.columns
-                     (form-to [:put "/requesthint/clue"]
-                              (hidden-field "clueid" clueid)
-                              (submit-button {:tabindex 1 :class "button expand"} "Reveal Clue Hint"))]])))]])))))))
+                  usedcluehint [:div.row
+                                [:div.large-12.columns cluehint]]
+
+                  (empty? cluehint) [:div.row
+                                     [:div.large-12.columns "You're not getting any help on this one."]]
+
+                  true (list
+                        [:div.row
+                         [:div.large-12.columns "Spend a point to unlock a better clue?"]]
+                        [:div.row
+                         [:div.large-12.columns
+                          (form-to [:put "/requesthint/clue"]
+                                   (hidden-field "clueid" clueid)
+                                   (submit-button {:tabindex 1 :class "button expand"} "Reveal Clue Hint"))]])))]])))))))
 
     ;; not logged in
     (layout/common
