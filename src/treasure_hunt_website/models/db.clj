@@ -105,6 +105,12 @@
 (defn get-team-members-for-team [teamid]
   (sql/query db ["SELECT * FROM team_members WHERE teamid = ?" teamid]))
 
+(defn reveal-location-hint [clueid teamid]
+  (sql/update! db :progress {:usedlocationhint 1} ["clueid = ? AND teamid = ?" clueid teamid]))
+
+(defn reveal-clue-hint [clueid teamid]
+  (sql/update! db :progress {:usedcluehint 1} ["clueid = ? AND teamid = ?" clueid teamid]))
+
 (defn- create-clues []
   (add-clue "First clue" "The first clue is hidden in location A" "The solution is the first letter of the Greek alphabet" 0 0 0 (noir.util.crypt/encrypt "alpha"))
   (add-clue "Second clue" "The second clue is hidden in location B" "The solution is the second letter of the Greek alphabet" 1 1 0 (noir.util.crypt/encrypt "beta"))

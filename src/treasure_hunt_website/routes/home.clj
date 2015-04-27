@@ -6,19 +6,33 @@
             [noir.util.crypt :as crypt]
             [treasure-hunt-website.views.layout :as layout]
             [treasure-hunt-website.models.db :as db]
-            [hiccup.form :refer [form-to text-field text-area label submit-button]]
+            [hiccup.form :refer [form-to text-field text-area label hidden-field submit-button]]
             [hiccup.element :refer [link-to]]
             [clojure.string :refer [lower-case trim]]))
 
+(defn hint-buttons [teamid clueid usedcluehint usedlocationhint]
+  (form-to [:put "/requesthint/location"]
+           (hidden-field "clueid" clueid)
+           (submit-button {:tabindex 1 :class "button"} "Reveal Location Hint"))
+  (form-to [:put "/requesthint/clue"]
+           (hidden-field "clueid" clueid)
+           (submit-button {:tabindex 1 :class "button"} "Reveal Clue Hint"))
+  )
+
 (defn clues [team-id]
-  (doall (for [{:keys [clueid cluetext haslimitedattempts numattemptsallowed numattemptsmade flairchallenge solved] :as clue} (db/get-clues-for-team team-id)]
+  (doall (for [{:keys [clueid cluetext usedcluehint usedlocationhint haslimitedattempts numattemptsallowed numattemptsmade flairchallenge solved] :as clue} (db/get-clues-for-team team-id)]
            [:li {:clueid clueid}
             (when flairchallenge
               [:img {:src "sun.jpg"}])
-            (str cluetext (if solved
-                            (str " SOLVED!")
-                            (if haslimitedattempts
-                              (str " (" numattemptsmade "/" numattemptsallowed " attempts used)"))))])))
+            [:div (str cluetext (if solved
+                                  (str " SOLVED!")
+                                  (when haslimitedattempts
+                                    (str " (" numattemptsmade "/" numattemptsallowed " attempts used)"))))
+             (if-not solved
+               (if haslimitedattempts
+                 (when (< numattemptsmade numattemptsallowed)
+                   (hint-buttons team-id clueid usedcluehint usedlocationhint))
+                 (hint-buttons team-id clueid usedcluehint usedlocationhint)))]])))
 
 (defn teamname []
   (session/get :teamname))
@@ -192,9 +206,19 @@
     (home {:teammembername teammembername :active-tab "team"})
     ))
 
+(defn reveal-location-hint [clueid]
+  (db/reveal-location-hint [clueid (teamid)])
+  (resp/redirect "/"))
+
+(defn reveal-clue-hint [clueid]
+  (db/reveal-clue-hint [clueid (teamid)])
+  (resp/redirect "/"))
+
 (defroutes home-routes
   (GET "/" [] (home))
   (POST "/guess" [guess] (check-guess guess))
   (GET "/editteam" [] (teampage))
   (POST "/addmember" [teammembername] (add-team-member teammembername))
+  (PUT "/requesthint/location" [clueid] (reveal-location-hint clueid))
+  (PUT "/requesthint/clue" [clueid] (reveal-clue-hint clueid))
   )
