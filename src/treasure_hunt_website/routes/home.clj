@@ -20,40 +20,125 @@
                             (if haslimitedattempts
                               (str " (" numattemptsmade "/" numattemptsallowed " attempts used)"))))])))
 
-(defn wrong-guess [[message]]
-  [:div.wrong-guess message])
+(defn teamname []
+  (session/get :teamname))
 
-(defn home []
-  (layout/common
-   (let [teamname (session/get :teamname)]
-     (if teamname
-       [:div
-        [:h1 "Welcome, " teamname "!"]
-        [:h2 "You have discovered the following clues:"]
-        (vec (conj
-              (clues (session/get :teamid))
-              :ol))
-        (if (db/team-has-solved-or-failed-all-clues? (session/get :teamid))
-          [:div.victory "Congratulations, you have completed the Spark Games challenge!"]
-          (form-to [:post "/guess"]
+(defn teamid []
+  (session/get :teamid))
 
-                   (vali/on-error :guess wrong-guess)
-                   (label "guess-label" "Enter the solution to this clue:")
-                   (text-field {:tabindex 1} "guess")
-                   [:br]
-                   (submit-button {:tabindex 2} "Check!")))
-        [:h2 "You have currently earned: " (db/calculate-score-for-team (session/get :teamid)) " points!"]
-        [:div.large-2.columns (link-to {:class "button"} "/editteam" "Edit Team")]]
+(def logged-in? teamname)
 
-       ;; no team name
+(defn auth-block []
+  (if (logged-in?)
+    [:div.row
+     [:div.large-2.columns (link-to {:class "button expand"} "/logout" "Logout")]
+     [:div.large-10.columns]]
+
+    [:div.row
+     [:div.large-2.columns
+      (link-to {:class "button expand"} "/register" "Register")]
+     [:div.large-2.columns
+      (link-to {:class "button expand"} "/login" "Login")]
+     [:div.large-6.columns]]))
+
+(defn -tab-active [active current & default]
+  (cond
+    (not active) (if default {:class "active"} {})
+    (= active current) {:class "active"}
+    true {}))
+
+(defn tabbed-view [{:keys [teammembername active-tab]} content]
+  (list
+   [:ul.tabs {:data-tab true :data-options "deep_linking:true"}
+    [:li.tab-title (-tab-active active-tab "game" true) (link-to "#game" "Game")]
+    [:li.tab-title (-tab-active active-tab "team") (link-to "#team" "My Team")]
+    [:li.tab-title (-tab-active active-tab "clues") (link-to "#clues" "Past Clues")]]
+
+   [:div.tabs-content
+    [:div#game.content (-tab-active active-tab "game" true)
+     content]
+
+    [:div#team.content (-tab-active active-tab "team")
+
+     [:div.row
+      [:div.large-6.columns
+       (form-to [:post "/addmember"]
+                [:div.row
+                 [:div.large-12.columns
+                  (vali/on-error :teammembername teammember-error)
+                  (label "teammembername-label" "Enter team member name")
+                  (text-field {:tabindex 1} "teammembername" teammembername)]]
+
+                [:div.row
+                 [:div.large-12.columns
+                  (submit-button {:tabindex 2 :class "button"} "Add new member!")]])]
+
+      [:div.large-6.columns
+       [:div.row
+        [:div.large-12.columns
+         [:h2 "My Team"]]]
+       (for [member (teammembers (teamid))]
+         [:div.row
+          [:div.large-12.columns
+           member]])]]]
+
+    [:div#clues.content (-tab-active active-tab "clues")
+     (if (not (empty? (clues (session/get :teamid))))
        (list
         [:div.row
          [:div.large-12.columns
-          [:h2 "Welcome to Spark Games!"]]]
+          "You have discovered the following clues:"]]
+        (for [clue (clues (session/get :teamid))]
+          [:div.row
+           [:div.large-12.columns
+            clue]]))
+       "You haven't solved any clues yet. Check out the FAQ if you need help getting started.")]]
+   (auth-block)))
 
+(defn wrong-guess [[message]]
+  [:div.wrong-guess message])
+
+(defn clue-guess-form []
+  (form-to [:post "/guess"]
+           (vali/on-error :guess wrong-guess)
+           (label "guess-label" "Enter the solution to this clue:")
+           (text-field {:tabindex 1} "guess")
+           [:br]
+           (submit-button {:tabindex 2} "Check!")))
+
+(defn home [& [opts]]
+  (if-let [teamname (logged-in?)]
+    (layout/common
+     (list
+      [:div.row
+       [:div.large-12.columns
+        [:h1 "Welcome, " teamname "!"]]]
+
+      (when (db/team-has-solved-or-failed-all-clues? (session/get :teamid))
+        [:div.panel.callout "Congratulations, you have completed the Spark Games challenge!"])
+
+      (tabbed-view opts
+       (list
         [:div.row
          [:div.large-12.columns
-          "If you have a team then please log in to continue your quest. If this is your first visit then select register to begin."]])))))
+          "You have currently earned: " (db/calculate-score-for-team (session/get :teamid)) " points!"]]
+
+        (when-not (db/team-has-solved-or-failed-all-clues? (session/get :teamid))
+          [:div.row
+           [:div.large-12.columns (clue-guess-form)]])))))
+
+    ;; not logged in
+    (layout/common
+     (list
+      [:div.row
+       [:div.large-12.columns
+        [:h2 "Welcome to Spark Games!"]]]
+
+      [:div.row
+       [:div.large-12.columns
+        "If you have a team then please log in to continue your quest. If this is your first visit then select register to begin."]]
+
+      (auth-block)))))
 
 (defn check-guess-against-clue [guess {:keys [answercode]}]
   (crypt/compare (lower-case (trim guess)) answercode))
@@ -79,8 +164,8 @@
     (home)))
 
 (defn teammembers [team-id]
-  (doall (for [{:keys [teammembername]} (db/get-team-members-for-team team-id)]
-           [:li teammembername])))
+  (for [{:keys [teammembername]} (db/get-team-members-for-team team-id)]
+    teammembername))
 
 (defn teammember-error [[error]]
   [:div.error error])
@@ -89,15 +174,6 @@
   (if-let [teamname (session/get :teamname)]
     (layout/common
      [:div
-      [:h1 "Members of " teamname ":"]
-      [:ul
-       (teammembers (session/get :teamid))]
-      (form-to [:post "/addmember"]
-               (vali/on-error :teammembername teammember-error)
-               (label "teammembername-label" "Enter team member name")
-               (text-field {:tabindex 1} "teammembername" teammembername)
-               [:br]
-               (submit-button {:tabindex 2} "Add new member!"))
       [:div.large-2.columns (link-to {:class "button"} "/" "Back to the clues!")]])
     (resp/redirect "/")))
 
@@ -112,8 +188,8 @@
   (if (valid-teammember? teammembername)
     (do
       (db/add-member-to-team teammembername (session/get :teamid))
-      (resp/redirect "/editteam"))
-    (teampage [teammembername])
+      (resp/redirect "/#team"))
+    (home {:teammembername teammembername :active-tab "team"})
     ))
 
 (defroutes home-routes

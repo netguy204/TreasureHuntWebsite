@@ -22,7 +22,6 @@
 
                  [domina "1.0.0"]
                  [cljs-ajax "0.2.0"]
-
                  ]
 
   :plugins [[lein-ring "0.8.12"]
