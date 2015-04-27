@@ -36,8 +36,11 @@
   [clueid teamid newattemptsmade]
   (sql/update! db :progress {:numattemptsmade newattemptsmade} ["teamid = ? AND clueid = ?" teamid clueid]))
 
+(defn current-clue [teamid]
+  (last (sql/query db ["SELECT c.clueid, c.cluetext, c.locationhint, c.cluehint, c.haslimitedattempts, c.numattemptsallowed, c.flairchallenge, c.answercode, p.usedlocationhint, p.usedcluehint, p.numattemptsmade, p.solved FROM clues AS c, progress AS p WHERE p.teamid = ? AND p.clueid = c.clueid ORDER BY c.clueid ASC" teamid] :row-fn convert-fields-to-boolean)))
+
 (defn get-current-clue-for-team-and-mark-an-attempt [teamid]
-  (let [{:keys [clueid numattemptsmade] :as clue} (last (sql/query db ["SELECT c.clueid, c.cluetext, c.locationhint, c.cluehint, c.haslimitedattempts, c.numattemptsallowed, c.answercode, p.usedlocationhint, p.usedcluehint, p.numattemptsmade, p.solved FROM clues AS c, progress AS p WHERE p.teamid = ? AND p.clueid = c.clueid ORDER BY c.clueid ASC" teamid] :row-fn convert-fields-to-boolean))
+  (let [{:keys [clueid numattemptsmade] :as clue} (current-clue teamid)
         newattemptsmade (inc numattemptsmade)]
     (update-attempts-made clueid teamid newattemptsmade)
     (assoc clue :numattemptsmade newattemptsmade)))
