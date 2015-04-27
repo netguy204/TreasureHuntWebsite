@@ -49,15 +49,13 @@
 (defn auth-block []
   (if (logged-in?)
     [:div.row
-     [:div.large-2.columns (link-to {:class "button expand"} "/logout" "Logout")]
-     [:div.large-10.columns]]
+     [:div.large-12.columns (link-to {:class "button expand"} "/logout" "Logout")]]
 
     [:div.row
-     [:div.large-2.columns
+     [:div.large-6.columns
       (link-to {:class "button expand"} "/register" "Register")]
-     [:div.large-2.columns
-      (link-to {:class "button expand"} "/login" "Login")]
-     [:div.large-6.columns]]))
+     [:div.large-6.columns
+      (link-to {:class "button expand"} "/login" "Login")]]))
 
 (defn -tab-active [active current & default]
   (cond
@@ -121,11 +119,15 @@
 
 (defn clue-guess-form []
   (form-to [:post "/guess"]
-           (vali/on-error :guess wrong-guess)
-           (label "guess-label" "Enter the solution to this clue:")
-           (text-field {:tabindex 1} "guess")
-           [:br]
-           (submit-button {:tabindex 2} "Check!")))
+           [:div.row
+            [:div.large-12.columns
+             (vali/on-error :guess wrong-guess)
+             (label "guess-label" "Enter the solution to this clue:")
+             (text-field {:tabindex 1} "guess")]]
+
+           [:div.row
+            [:div.large-12.columns
+             (submit-button {:tabindex 2 :class "button expand"} "Check!")]]))
 
 (defn home [& [opts]]
   (if-let [teamname (logged-in?)]
@@ -145,14 +147,36 @@
           "You have currently earned: " (db/calculate-score-for-team (session/get :teamid)) " points!"]]
 
         (when-not (db/team-has-solved-or-failed-all-clues? (teamid))
-          (let [{:keys [clueid cluetext locationhint cluehint usedlocationhint usedcluehint]} (db/current-clue (teamid))]
+          (let [{:keys [clueid cluetext flairchallenge
+                        locationhint cluehint usedlocationhint usedcluehint
+                        haslimitedattempts numattemptsallowed numattemptsmade]} (db/current-clue (teamid))]
             (list
              [:div.row
               [:div.large-12.columns
                [:div.panel.callout
-                "Current clue: " cluetext]]]
+                (when haslimitedattempts
+                  [:div.row
+                   [:div.large-12.columns
+                    "Be careful. You only have " (- numattemptsallowed numattemptsmade) " chance(s) to get this right."]])
+
+                [:div.row
+                 [:div.large-8.columns
+                  "Current clue: " cluetext]
+
+                 [:div.large-4.columns
+                  (when flairchallenge
+                    (list
+                     [:div.row
+                      [:div.large-12.columns
+                       [:img {:src "sun.jpg"}]]]
+                     [:div.row
+                      [:div.large-12.columns
+                       (link-to (str "mailto:sparkgamecontrol@jhuapl.edu?subject=" teamname) "Get your flair on!")]]))]]]]]
 
              [:div.row
+              [:div.large-12.columns (clue-guess-form)]]
+
+                          [:div.row
               [:div.large-12.columns
                "You may spend one point to unlock additional information on the location of the clue and one point to get a better clue."]]
 
@@ -173,7 +197,7 @@
                     [:div.large-12.columns
                      (form-to [:put "/requesthint/location"]
                               (hidden-field "clueid" clueid)
-                              (submit-button {:tabindex 1 :class "button"} "Reveal Location Hint"))]])))]
+                              (submit-button {:tabindex 1 :class "button expand"} "Reveal Location Hint"))]])))]
 
               [:div.large-6.columns.panel
                (list
@@ -191,11 +215,7 @@
                     [:div.large-12.columns
                      (form-to [:put "/requesthint/clue"]
                               (hidden-field "clueid" clueid)
-                              (submit-button {:tabindex 1 :class "button"} "Reveal Clue Hint"))]])))]]
-
-
-             [:div.row
-              [:div.large-12.columns (clue-guess-form)]])))))))
+                              (submit-button {:tabindex 1 :class "button expand"} "Reveal Clue Hint"))]])))]])))))))
 
     ;; not logged in
     (layout/common
