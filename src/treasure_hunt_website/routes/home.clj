@@ -123,7 +123,7 @@
             [:div.large-12.columns
              (vali/on-error :guess wrong-guess)
              (label "guess-label" "Enter the solution to this clue:")
-             (text-field {:tabindex 1} "guess")]]
+             (text-field {:tabindex 1 :autocomplete "off"} "guess")]]
 
            [:div.row
             [:div.large-12.columns
