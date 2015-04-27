@@ -144,9 +144,58 @@
          [:div.large-12.columns
           "You have currently earned: " (db/calculate-score-for-team (session/get :teamid)) " points!"]]
 
-        (when-not (db/team-has-solved-or-failed-all-clues? (session/get :teamid))
-          [:div.row
-           [:div.large-12.columns (clue-guess-form)]])))))
+        (when-not (db/team-has-solved-or-failed-all-clues? (teamid))
+          (let [{:keys [clueid cluetext locationhint cluehint usedlocationhint usedcluehint]} (db/current-clue (teamid))]
+            (list
+             [:div.row
+              [:div.large-12.columns
+               [:div.panel.callout
+                "Current clue: " cluetext]]]
+
+             [:div.row
+              [:div.large-12.columns
+               "You may spend one point to unlock additional information on the location of the clue and one point to get a better clue."]]
+
+             [:div.row
+              [:div.large-6.columns.panel
+               (list
+                [:div.row
+                 [:div.large-12.columns [:h3 "Location Hint"]]]
+
+                (if usedlocationhint
+                  [:div.row
+                   [:div.large-12.columns locationhint]]
+
+                  (list
+                   [:div.row
+                    [:div.large-12.columns "Spend a point to unlock a location hint?"]]
+                   [:div.row
+                    [:div.large-12.columns
+                     (form-to [:put "/requesthint/location"]
+                              (hidden-field "clueid" clueid)
+                              (submit-button {:tabindex 1 :class "button"} "Reveal Location Hint"))]])))]
+
+              [:div.large-6.columns.panel
+               (list
+                [:div.row
+                 [:div.large-12.columns [:h3 "Clue Hint"]]]
+
+                (if usedcluehint
+                  [:div.row
+                   [:div.large-12.columns cluehint]]
+
+                  (list
+                   [:div.row
+                    [:div.large-12.columns "Spend a point to unlock a better clue?"]]
+                   [:div.row
+                    [:div.large-12.columns
+                     (form-to [:put "/requesthint/clue"]
+                              (hidden-field "clueid" clueid)
+                              (submit-button {:tabindex 1 :class "button"} "Reveal Clue Hint"))]])))]]
+
+
+             [:div.row
+              [:div.large-12.columns (clue-guess-form)]])))))))
 
     ;; not logged in
     (layout/common
@@ -200,17 +249,16 @@
     ))
 
 (defn reveal-location-hint [clueid]
-  (db/reveal-location-hint [clueid (teamid)])
-  (resp/redirect "/"))
+  (db/reveal-location-hint clueid (teamid))
+  (resp/redirect "/#game"))
 
 (defn reveal-clue-hint [clueid]
-  (db/reveal-clue-hint [clueid (teamid)])
-  (resp/redirect "/"))
+  (db/reveal-clue-hint clueid (teamid))
+  (resp/redirect "/#game"))
 
 (defroutes home-routes
   (GET "/" [] (home))
   (POST "/guess" [guess] (check-guess guess))
-  (GET "/editteam" [] (teampage))
   (POST "/addmember" [teammembername] (add-team-member teammembername))
   (PUT "/requesthint/location" [clueid] (reveal-location-hint clueid))
   (PUT "/requesthint/clue" [clueid] (reveal-clue-hint clueid))
