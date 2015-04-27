@@ -107,10 +107,24 @@
         [:div.row
          [:div.large-12.columns
           "You have discovered the following clues:"]]
-        (for [clue (clues (session/get :teamid))]
-          [:div.row
-           [:div.large-12.columns
-            clue]]))
+        [:div.row
+         [:div.large-12.columns
+          [:table
+           [:thead
+            [:tr
+             [:th "Clue Location"]
+             [:th "Solved?"]
+             [:th "Location Hint?"]
+             [:th "Clue Hint?"]]]
+
+           [:tbody
+            (for [{:keys [cluetext usedcluehint usedlocationhint solved]} (db/get-clues-for-team (teamid))]
+              [:tr
+               [:td cluetext]
+               [:td (if solved "Yes" "No")]
+               [:td (if usedlocationhint "Yes" "No")]
+               [:td (if usedcluehint "Yes" "No")]])]]]]
+)
        "You haven't solved any clues yet. Check out the FAQ if you need help getting started.")]]
    (auth-block)))
 
