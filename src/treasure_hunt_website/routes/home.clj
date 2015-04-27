@@ -23,7 +23,7 @@
   (doall (for [{:keys [clueid cluetext usedcluehint usedlocationhint haslimitedattempts numattemptsallowed numattemptsmade flairchallenge solved] :as clue} (db/get-clues-for-team team-id)]
            [:li {:clueid clueid}
             (when flairchallenge
-              [:img {:src "sun.jpg"}])
+              [:img {:src "sun.png"}])
             [:div (str cluetext (if solved
                                   (str " SOLVED!")
                                   (when haslimitedattempts
@@ -168,7 +168,7 @@
                     (list
                      [:div.row
                       [:div.large-12.columns
-                       [:img {:src "sun.jpg"}]]]
+                       [:img {:src "sun.png"}]]]
                      [:div.row
                       [:div.large-12.columns
                        (link-to (str "mailto:sparkgamecontrol@jhuapl.edu?subject=" teamname) "Get your flair on!")]]))]]]]]
