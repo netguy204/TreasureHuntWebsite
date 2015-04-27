@@ -225,7 +225,10 @@
                 (cond
 
                   usedcluehint [:div.row
-                                [:div.large-12.columns cluehint]]
+                                [:div.large-12.columns (if (re-find #".+png$" cluehint)
+                                                         [:img {:src cluehint}]
+                                                         cluehint
+                                                         )]]
 
                   (empty? cluehint) [:div.row
                                      [:div.large-12.columns "You're not getting any help on this one."]]
