@@ -13,7 +13,7 @@
      [:body
 
       [:div.row
-       [:div.large-12.columns.panel
+       [:div.large-12.columns
         content]]
 
       [:script {:src (str fnd "/js/vendor/jquery.js")}]
