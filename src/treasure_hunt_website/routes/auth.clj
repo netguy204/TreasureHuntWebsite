@@ -40,22 +40,30 @@
 (defn registration-page [& [id pocemail]]
   (layout/base
    (form-to [:post "/register"]
-            (vali/on-error :id error-item)
-            (label "team-id" "Team name")
-            (text-field {:tabindex 1}  "id" id)
-            [:br]
-            (vali/on-error :pocemail error-item)
-            (label "pocemail" "Team Point-of-Contact e-mail address")
-            (text-field {:tabindex 2} "pocemail" pocemail)
-            [:br]
-            (vali/on-error :pass error-item)
-            (label "pass" "Password")
-            (password-field {:tabindex 3} "pass")
-            [:br]
-            (vali/on-error :pass1 error-item)
-            (label "pass1" "Confirm password")
-            (password-field {:tabindex 4} "pass1")
-            [:br]
+            [:div.row
+             [:div.large-12.columns
+              (vali/on-error :id error-item)
+              (label "team-id" "Team name")
+              (text-field {:tabindex 1}  "id" id)]]
+
+            [:div.row
+             [:div.large-12.columns
+              (vali/on-error :pocemail error-item)
+              (label "pocemail" "Team Point-of-Contact e-mail address")
+              (text-field {:tabindex 2} "pocemail" pocemail)]]
+
+            [:div.row
+             [:div.large-12.columns
+              (vali/on-error :pass error-item)
+              (label "pass" "Password")
+              (password-field {:tabindex 3} "pass")]]
+
+            [:div.row
+             [:div.large-12.columns
+              (vali/on-error :pass1 error-item)
+              (label "pass1" "Confirm password")
+              (password-field {:tabindex 4} "pass1")]]
+
             ;; (vali/on-error :pocname error-item)
             ;; (label "pocname" "Name (optional)")
             ;; (text-field {:tabindex 5} "pocname" pocname)
@@ -64,7 +72,9 @@
             ;; (label "pocname" "Name (optional)")
             ;; (text-field {:tabindex 5} "pocname" pocname)
             ;; [:br]
-            (submit-button {:tabindex 5} "Create Account"))))
+            [:div.row
+             [:div.large-12.columns
+              (submit-button {:tabindex 5 :class "button"} "Create Account")]])))
 
 ;; (db/create-team {:teamname "Demo" :password (crypt/encrypt "qwerty")})
 ;; (do (db/update-clue 1 (crypt/encrypt "alpha"))
